@@ -3,20 +3,28 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Activity, CalendarDays, Trash2, Dumbbell, Play, CheckCircle2, XCircle, ChevronRight, Minus, Link2, FileText, Settings2, Eye, AlertTriangle, ChevronDown, Type, Target, Zap, X, BarChart2, UploadCloud, LogOut } from "lucide-react";
+import { Plus, Activity, CalendarDays, Trash2, Dumbbell, Play, CheckCircle2, XCircle, ChevronRight, Minus, Link2, FileText, Settings2, Eye, AlertTriangle, ChevronDown, Type, Target, Zap, X, BarChart2, UploadCloud, LogOut, Flame } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 
 // --- Interfaces ---
 interface ExerciseDef { id: string; name: string; machineName: string; muscleGroup: string; equipment: string; videoUrl: string; instructions: string; }
 interface LoggedSet { id: string; user: string; exerciseName: string; setNumber: number; reps: number; weight: number; muscleGroup: string; equipment: string; date: string; }
 
+const allMuscleGroups = ["Chest", "Back", "Legs", "Shoulders", "Biceps", "Triceps", "Core", "Forearm", "Calves"];
+const allEquipmentTypes = ["Barbell", "Single Dumbbell", "Dumbbells", "Machine", "Cable", "Bodyweight", "Smith Machine", "Kettlebell", "Single Plate", "Plates"];
+
+// --- UPDATED: ADDED "ANYTIME" FLEX PROTOCOL ---
 const weeklySplit: Record<string, string[]> = {
-  "Monday": ["Chest", "Triceps"], "Tuesday": ["Back", "Biceps", "Forearm"], "Wednesday": ["Legs", "Shoulders"],
-  "Thursday": ["Chest", "Triceps"], "Friday": ["Back", "Biceps", "Forearm"], "Saturday": ["Legs", "Shoulders"], "Sunday": ["Rest"],
+  "Monday": ["Chest", "Triceps"], 
+  "Tuesday": ["Back", "Biceps", "Forearm"], 
+  "Wednesday": ["Legs", "Shoulders", "Calves"],
+  "Thursday": ["Chest", "Triceps"], 
+  "Friday": ["Back", "Biceps", "Forearm"], 
+  "Saturday": ["Legs", "Shoulders", "Calves"], 
+  "Sunday": ["Rest"],
+  "Anytime": allMuscleGroups // Unlocks everything
 };
-const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-const allMuscleGroups = ["Chest", "Back", "Legs", "Shoulders", "Biceps", "Triceps", "Core", "Forearm"];
-const allEquipmentTypes = ["Barbell", "Dumbbells", "Machine", "Cable", "Bodyweight", "Smith Machine", "Plates"];
+const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Anytime"];
 
 const formatRecordDate = (dateStr: string) => {
   const [year, month, day] = dateStr.split('-');
@@ -36,10 +44,10 @@ const getTrainingZone = (reps: number) => {
 const PremiumSelect = ({ value, onChange, options, icon: Icon, placeholder, label }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="space-y-1.5 relative">
+    <div className="space-y-1.5 relative transform-gpu z-20">
       <label className="block text-[10px] text-zinc-500 uppercase tracking-widest font-bold ml-1">{label}</label>
       <div className="relative group">
-        <button type="button" onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-xl md:rounded-2xl py-3.5 md:py-4 pl-12 pr-4 text-sm md:text-base text-white focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 outline-none transition-all shadow-inner">
+        <button type="button" onClick={() => setIsOpen(!isOpen)} className="w-full flex items-center justify-between bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-xl md:rounded-2xl py-3.5 md:py-4 pl-12 pr-4 text-sm md:text-base text-white focus:border-emerald-500/50 outline-none transition-all shadow-inner">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Icon className={`w-4 h-4 transition-colors ${isOpen ? 'text-emerald-400' : 'text-zinc-500 group-hover:text-zinc-400'}`} />
           </div>
@@ -49,8 +57,8 @@ const PremiumSelect = ({ value, onChange, options, icon: Icon, placeholder, labe
         <AnimatePresence>
           {isOpen && (
             <>
-              <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-              <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }} className="absolute z-50 w-full mt-2 bg-zinc-900/95 backdrop-blur-3xl border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
+              <div className="fixed inset-0 z-30" onClick={() => setIsOpen(false)} />
+              <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.15 }} className="absolute z-40 w-full mt-2 bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.5)]">
                 <div className="max-h-60 overflow-y-auto custom-scrollbar p-2 space-y-1">
                   {options.map((opt: string) => (
                     <div key={opt} onClick={() => { onChange(opt); setIsOpen(false); }} className={`px-4 py-3 rounded-xl cursor-pointer flex items-center justify-between transition-all ${value === opt ? 'bg-emerald-500/10 text-emerald-400 font-bold' : 'hover:bg-white/5 text-zinc-300 hover:text-white'}`}>
@@ -274,6 +282,7 @@ export default function TitanForgeElite() {
     acc[log.date].push(log); return acc;
   }, {} as Record<string, LoggedSet[]>);
   const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  
   const groupByExercise = (dayLogs: LoggedSet[]) => {
     return dayLogs.reduce((acc, log) => {
       if (!acc[log.exerciseName]) acc[log.exerciseName] = [];
@@ -291,6 +300,10 @@ export default function TitanForgeElite() {
     <div className="min-h-screen bg-black text-zinc-100 font-sans selection:bg-indigo-500 selection:text-white relative pb-28 md:pb-12 overflow-x-hidden">
       
       <style dangerouslySetInnerHTML={{__html: `
+        /* Smooth, hidden scrollbars for mobile swipes */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
@@ -298,20 +311,21 @@ export default function TitanForgeElite() {
         .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 9999px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
         input[type='number']::-webkit-inner-spin-button, input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type='number'] { -moz-appearance: textfield; padding: 0; }
         html, body { overscroll-behavior-x: none; }
       `}} />
 
-      <div className="fixed top-0 left-1/4 w-[70vw] md:w-[50vw] h-[70vw] md:h-[50vw] rounded-full bg-indigo-900/15 blur-[120px] md:blur-[150px] pointer-events-none mix-blend-screen"></div>
+      {/* --- MOBILE OPTIMIZED BACKGROUND BLUR --- */}
+      <div className="fixed top-0 left-1/4 w-[70vw] md:w-[50vw] h-[70vw] md:h-[50vw] rounded-full bg-indigo-900/15 blur-[60px] md:blur-[120px] pointer-events-none mix-blend-screen"></div>
+      
       <Toaster position="top-center" toastOptions={{ style: { background: 'rgba(24, 24, 27, 0.95)', backdropFilter: 'blur(12px)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '9999px', padding: '12px 24px', fontWeight: 'bold', fontSize: '14px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' } }} />
 
       <AnimatePresence>
         {confirmDialog.isOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 md:px-0">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))} />
-            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "spring", bounce: 0, duration: 0.4 }} className="bg-zinc-900/95 backdrop-blur-3xl border border-white/10 p-6 md:p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative z-10 w-full max-w-sm flex flex-col items-center text-center mx-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} transition={{ type: "tween", duration: 0.2 }} className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 p-6 md:p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] relative z-10 w-full max-w-sm flex flex-col items-center text-center mx-4">
               <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6 border border-red-500/20"><AlertTriangle className="w-8 h-8" /></div>
               <h3 className="text-2xl font-black text-white mb-2">{confirmDialog.title}</h3>
               <p className="text-zinc-400 text-sm mb-8 leading-relaxed px-2">{confirmDialog.message}</p>
@@ -324,9 +338,8 @@ export default function TitanForgeElite() {
         )}
       </AnimatePresence>
 
-      {/* --- LAYER FIX: BUMPED Z-INDEX TO z-[60] --- */}
-      <header className="pt-6 pb-4 px-5 md:pt-8 md:pb-4 md:px-6 max-w-7xl mx-auto flex items-center justify-between relative z-[60]">
-        <div className="flex items-center gap-3 md:gap-4">
+      <header className="pt-6 pb-4 px-5 md:pt-8 md:pb-4 md:px-6 max-w-7xl mx-auto flex items-center justify-between relative z-[60] pointer-events-none">
+        <div className="flex items-center gap-3 md:gap-4 pointer-events-auto">
           <div className="w-10 h-10 md:w-12 md:h-12 bg-white text-black rounded-xl md:rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(255,255,255,0.2)]"><Activity className="w-6 h-6 md:w-7 md:h-7 stroke-[2.5]" /></div>
           <div>
             <h1 className="text-xl md:text-2xl font-black tracking-tight uppercase leading-none">Light</h1>
@@ -335,7 +348,7 @@ export default function TitanForgeElite() {
         </div>
 
         {activeProfile && (
-          <div className="flex items-center gap-2 md:gap-3">
+          <div className="flex items-center gap-2 md:gap-3 pointer-events-auto">
             <div className="flex items-center gap-2 bg-zinc-900/80 backdrop-blur-md border border-white/10 rounded-full p-1 sm:pr-4 shadow-lg">
               <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-emerald-500 flex items-center justify-center text-white font-black text-xs md:text-sm uppercase shadow-inner">
                 {activeProfile.charAt(0)}
@@ -349,7 +362,6 @@ export default function TitanForgeElite() {
         )}
       </header>
 
-      {/* --- LAYER FIX: ADDED pointer-events-none TO THIS WRAPPER --- */}
       <div className={`fixed bottom-6 left-0 right-0 z-50 pointer-events-none flex justify-center px-6 md:bottom-auto md:top-6 md:px-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isDashboardOpen ? 'translate-y-32 md:translate-y-0 opacity-0 md:opacity-100' : 'translate-y-0 opacity-100'}`}>
         <nav className="bg-zinc-900/80 backdrop-blur-2xl border border-white/10 p-1.5 rounded-full shadow-[0_20px_40px_rgba(0,0,0,0.5)] pointer-events-auto flex gap-1 w-full md:w-auto justify-between md:justify-start">
           {navItems.map((item) => (
@@ -369,11 +381,15 @@ export default function TitanForgeElite() {
             {/* ================= WORKOUT MODE ================= */}
             {appMode === "workout" && (
               <div className="space-y-6 md:space-y-8">
-                <div className="flex justify-between md:justify-start md:space-x-2 w-full pb-2 md:pb-4">
+                
+                {/* --- UPDATED: MOBILE SWIPEABLE DAY SELECTOR --- */}
+                <div className="flex overflow-x-auto hide-scrollbar snap-x snap-mandatory gap-2 md:gap-2 w-full pb-2 md:pb-4 -mx-4 px-4 md:mx-0 md:px-0">
                   {daysOfWeek.map(day => (
-                    <button key={day} onClick={() => setSelectedDay(day)} className={`flex flex-col items-center justify-center flex-1 md:flex-none md:px-6 py-3 md:py-2.5 rounded-2xl md:rounded-full transition-all duration-200 border active:scale-95 ${selectedDay === day ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)] md:scale-100" : "bg-zinc-900/40 md:bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-500 hover:text-white mx-0.5 md:mx-0"}`}>
+                    <button key={day} onClick={() => setSelectedDay(day)} className={`flex flex-col items-center justify-center flex-shrink-0 snap-center px-5 md:px-6 py-3 md:py-2.5 rounded-2xl md:rounded-full transition-all duration-200 border active:scale-95 ${selectedDay === day ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]" : "bg-zinc-900/40 md:bg-transparent text-zinc-500 border-zinc-800 hover:border-zinc-500 hover:text-white"}`}>
                       <span className="text-xs font-black uppercase tracking-widest hidden md:block">{day}</span>
-                      <span className="text-[10px] font-black uppercase block md:hidden">{day.slice(0, 3)}</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider block md:hidden">
+                        {day === "Anytime" ? <span className="flex items-center gap-1"><Flame className="w-3 h-3"/> Flex</span> : day.slice(0, 3)}
+                      </span>
                       {selectedDay === day && <span className="w-1 h-1 bg-black rounded-full mt-1 block md:hidden"></span>}
                     </button>
                   ))}
@@ -386,47 +402,44 @@ export default function TitanForgeElite() {
                   </div>
                 ) : (
                   <>
-                    <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 pb-10">
-                      <AnimatePresence>
-                        {availableExercises.map(ex => (
-                          <motion.div 
-                            initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} 
-                            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-                            key={ex.id} 
-                            onClick={() => { setActiveExercise(ex); setIsDashboardOpen(true); }} 
-                            className={`relative cursor-pointer rounded-2xl md:rounded-3xl overflow-hidden border transition-all duration-300 group aspect-[4/5] bg-zinc-950 touch-manipulation hover:border-zinc-500 border-zinc-800/80`}
-                          >
-                            <button onClick={(e) => { e.stopPropagation(); triggerDeleteExercise(ex.id, ex.name); }} className="absolute top-2 right-2 md:top-3 md:right-3 bg-red-500/90 text-white p-2 rounded-full opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all z-20 active:scale-90 shadow-lg"><Trash2 className="w-3 h-3 md:w-4 md:h-4" /></button>
-                            <video src={ex.videoUrl} autoPlay loop muted playsInline className="absolute inset-0 object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-opacity" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
-                            <div className="absolute bottom-0 left-0 w-full p-3 md:p-4 pointer-events-none">
-                              <span className="text-[8px] md:text-[9px] text-zinc-400 uppercase tracking-widest font-bold block mb-1">{ex.equipment || ex.muscleGroup}</span>
-                              <h3 className="text-xs md:text-sm font-bold text-white leading-tight pr-2">{ex.name}</h3>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </AnimatePresence>
-                      <motion.div onClick={() => setAppMode("add")} className="cursor-pointer rounded-2xl md:rounded-3xl border-2 border-dashed border-zinc-800 hover:border-zinc-500 bg-zinc-900/20 flex flex-col items-center justify-center aspect-[4/5] transition-all group touch-manipulation">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5 pb-10">
+                      {availableExercises.map(ex => (
+                        <div 
+                          key={ex.id} 
+                          onClick={() => { setActiveExercise(ex); setIsDashboardOpen(true); }} 
+                          className={`relative cursor-pointer rounded-2xl md:rounded-3xl overflow-hidden border transition-all duration-300 group aspect-[4/5] bg-zinc-950 touch-manipulation hover:border-zinc-500 border-zinc-800/80`}
+                        >
+                          <button onClick={(e) => { e.stopPropagation(); triggerDeleteExercise(ex.id, ex.name); }} className="absolute top-2 right-2 md:top-3 md:right-3 bg-red-500/90 text-white p-2 rounded-full opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all z-20 active:scale-90 shadow-lg"><Trash2 className="w-3 h-3 md:w-4 md:h-4" /></button>
+                          <video src={ex.videoUrl} autoPlay loop muted playsInline className="absolute inset-0 object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-opacity" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
+                          <div className="absolute bottom-0 left-0 w-full p-3 md:p-4 pointer-events-none">
+                            <span className="text-[8px] md:text-[9px] text-zinc-400 uppercase tracking-widest font-bold block mb-1">{ex.equipment || ex.muscleGroup}</span>
+                            <h3 className="text-xs md:text-sm font-bold text-white leading-tight pr-2">{ex.name}</h3>
+                          </div>
+                        </div>
+                      ))}
+                      <div onClick={() => setAppMode("add")} className="cursor-pointer rounded-2xl md:rounded-3xl border-2 border-dashed border-zinc-800 hover:border-zinc-500 bg-zinc-900/20 flex flex-col items-center justify-center aspect-[4/5] transition-all group touch-manipulation">
                         <Plus className="text-zinc-600 group-hover:text-white w-6 h-6 md:w-8 md:h-8 mb-2 transition-colors" />
                         <span className="text-[9px] md:text-[10px] font-bold text-zinc-600 group-hover:text-white uppercase tracking-widest transition-colors">Add Machine</span>
-                      </motion.div>
-                    </motion.div>
+                      </div>
+                    </div>
 
                     <AnimatePresence>
                       {isDashboardOpen && activeExercise && (
                         <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center md:p-6">
-                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }} className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsDashboardOpen(false)} />
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsDashboardOpen(false)} />
                           
+                          {/* OPTIMIZED BLUR RADIUS FOR MOBILE */}
                           <motion.div 
                             initial={{ y: "100%", opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: "100%", opacity: 0 }} 
-                            transition={{ type: "spring", bounce: 0, duration: 0.4 }} 
+                            transition={{ type: "tween", duration: 0.3 }} 
                             drag="y"
                             dragConstraints={{ top: 0, bottom: 0 }}
-                            dragElastic={{ top: 0, bottom: 1 }}
+                            dragElastic={0.2}
                             onDragEnd={(e, { offset, velocity }) => {
                               if (offset.y > 100 || velocity.y > 500) setIsDashboardOpen(false);
                             }}
-                            className="bg-zinc-900/95 backdrop-blur-3xl border border-white/10 rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.5)] md:shadow-[0_0_50px_rgba(0,0,0,0.5)] relative z-10 w-full max-w-4xl max-h-[92vh] md:max-h-[85vh] flex flex-col overflow-hidden"
+                            className="bg-zinc-900/95 backdrop-blur-xl border border-white/10 rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.5)] md:shadow-[0_0_50px_rgba(0,0,0,0.5)] relative z-10 w-full max-w-4xl max-h-[92vh] md:max-h-[85vh] flex flex-col overflow-hidden"
                           >
                             <div className="w-12 h-1.5 bg-zinc-700/50 rounded-full mx-auto mt-4 mb-2 md:hidden flex-shrink-0" />
 
@@ -527,9 +540,8 @@ export default function TitanForgeElite() {
                                     <div className="pt-6 border-t border-white/5">
                                       <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">Today's Protocol</h3>
                                       <div className="space-y-3">
-                                        <AnimatePresence>
                                           {activeExerciseLogsToday.map((set) => (
-                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }} key={set.id} className="flex justify-between items-center bg-black/40 border border-white/5 p-4 md:p-5 rounded-[1.25rem] group hover:border-white/10 transition-colors">
+                                            <div key={set.id} className="flex justify-between items-center bg-black/40 border border-white/5 p-4 md:p-5 rounded-[1.25rem] group hover:border-white/10 transition-colors">
                                               <div className="flex gap-5 md:gap-8 items-center">
                                                 <span className="text-zinc-500 font-bold w-4 text-sm md:text-base">{set.setNumber}</span>
                                                 <span className="text-white font-bold text-lg md:text-xl">{set.reps} <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-normal">Reps</span></span>
@@ -542,9 +554,8 @@ export default function TitanForgeElite() {
                                                 </span>
                                                 <button onClick={() => triggerDeleteLog(set.id)} className="text-zinc-500 hover:text-red-500 transition-colors opacity-100 lg:opacity-0 group-hover:opacity-100 p-2 active:scale-90"><XCircle className="w-5 h-5 md:w-6 h-6" /></button>
                                               </div>
-                                            </motion.div>
+                                            </div>
                                           ))}
-                                        </AnimatePresence>
                                       </div>
                                     </div>
                                   )}
@@ -599,7 +610,7 @@ export default function TitanForgeElite() {
                         <PremiumSelect label="Equipment Type" value={newExEquipment} onChange={setNewExEquipment} options={allEquipmentTypes} icon={Dumbbell} placeholder="Select Equipment" />
                       </div>
 
-                      <div className="space-y-3 relative">
+                      <div className="space-y-3 relative z-10">
                         <div className="flex items-center justify-between">
                           <label className="block text-[10px] text-zinc-500 uppercase tracking-widest font-bold ml-1">Visual Feed</label>
                           <div className="flex bg-black/50 rounded-lg p-0.5 border border-white/5">
@@ -608,34 +619,32 @@ export default function TitanForgeElite() {
                           </div>
                         </div>
 
-                        <AnimatePresence mode="wait">
-                          {videoMode === 'url' ? (
-                            <motion.div key="url" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="relative group">
-                              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Link2 className="w-4 h-4 text-zinc-500 group-focus-within:text-emerald-400 transition-colors" /></div>
-                              <input type="text" value={newExVideo} onChange={e => setNewExVideo(e.target.value)} placeholder="https://..." className="w-full bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-xl md:rounded-2xl py-3.5 md:py-4 pl-12 pr-4 text-sm md:text-base text-white placeholder-zinc-700 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 outline-none transition-all shadow-inner" />
-                            </motion.div>
-                          ) : (
-                            <motion.div key="upload" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="relative group">
-                              <div className="relative flex items-center justify-center w-full bg-zinc-900/50 backdrop-blur-md border border-dashed border-white/20 rounded-xl md:rounded-2xl py-6 hover:border-emerald-500/50 transition-all overflow-hidden">
-                                <input type="file" accept="video/*" onChange={handleVideoUpload} disabled={isUploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10" />
-                                <div className="flex flex-col items-center pointer-events-none">
-                                  {isUploading ? (
-                                    <>
-                                      <Activity className="w-6 h-6 text-emerald-400 mb-2 animate-spin" />
-                                      <span className="text-xs text-emerald-400 font-bold">{uploadProgress}% Uploading...</span>
-                                      <div className="w-32 h-1 bg-zinc-800 rounded-full mt-3 overflow-hidden"><div className="h-full bg-emerald-400 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div></div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <UploadCloud className="w-6 h-6 text-zinc-500 mb-2 group-hover:text-emerald-400 transition-colors" />
-                                      <span className="text-xs text-zinc-400 font-medium">Tap to select .mp4 file</span>
-                                    </>
-                                  )}
-                                </div>
+                        {videoMode === 'url' ? (
+                          <div className="relative group animate-in fade-in zoom-in duration-200">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Link2 className="w-4 h-4 text-zinc-500 group-focus-within:text-emerald-400 transition-colors" /></div>
+                            <input type="text" value={newExVideo} onChange={e => setNewExVideo(e.target.value)} placeholder="https://..." className="w-full bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-xl md:rounded-2xl py-3.5 md:py-4 pl-12 pr-4 text-sm md:text-base text-white placeholder-zinc-700 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 outline-none transition-all shadow-inner" />
+                          </div>
+                        ) : (
+                          <div className="relative group animate-in fade-in zoom-in duration-200">
+                            <div className="relative flex items-center justify-center w-full bg-zinc-900/50 backdrop-blur-md border border-dashed border-white/20 rounded-xl md:rounded-2xl py-6 hover:border-emerald-500/50 transition-all overflow-hidden">
+                              <input type="file" accept="video/*" onChange={handleVideoUpload} disabled={isUploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10" />
+                              <div className="flex flex-col items-center pointer-events-none">
+                                {isUploading ? (
+                                  <>
+                                    <Activity className="w-6 h-6 text-emerald-400 mb-2 animate-spin" />
+                                    <span className="text-xs text-emerald-400 font-bold">{uploadProgress}% Uploading...</span>
+                                    <div className="w-32 h-1 bg-zinc-800 rounded-full mt-3 overflow-hidden"><div className="h-full bg-emerald-400 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div></div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <UploadCloud className="w-6 h-6 text-zinc-500 mb-2 group-hover:text-emerald-400 transition-colors" />
+                                    <span className="text-xs text-zinc-400 font-medium">Tap to select .mp4 file</span>
+                                  </>
+                                )}
                               </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="space-y-1.5 relative">
@@ -680,7 +689,7 @@ export default function TitanForgeElite() {
               </div>
             )}
 
-            {/* ================= RECORDS MODE ================= */}
+            {/* ================= UPDATED PREMIUM RECORDS MODE ================= */}
             {appMode === "records" && (
               <div className="max-w-4xl mx-auto space-y-6 md:space-y-8">
                 <div className="flex items-center justify-between px-2">
@@ -713,7 +722,7 @@ export default function TitanForgeElite() {
 
                             return (
                               <div key={exerciseName}>
-                                <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4 px-1 md:px-0">
+                                <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-5 px-1 md:px-0">
                                   {videoUrl ? (
                                     <div className="w-12 h-12 md:w-16 md:h-16 rounded-xl overflow-hidden border border-white/10 bg-zinc-950 flex-shrink-0 shadow-[0_0_15px_rgba(255,255,255,0.05)]">
                                       <video src={videoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover opacity-80" />
@@ -731,39 +740,29 @@ export default function TitanForgeElite() {
                                   </div>
                                 </div>
 
-                                <div className="bg-black/40 rounded-xl md:rounded-2xl border border-white/5 overflow-x-auto custom-scrollbar">
-                                  <table className="w-full text-center min-w-[280px] md:min-w-[300px]">
-                                    <thead className="bg-white/5">
-                                      <tr className="text-zinc-500 text-[8px] md:text-[10px] uppercase tracking-widest font-bold">
-                                        <th className="py-2.5 md:py-3 px-2 md:px-4 w-1/4">Set</th>
-                                        <th className="py-2.5 md:py-3 px-2 md:px-4 w-1/4">Reps</th>
-                                        <th className="py-2.5 md:py-3 px-2 md:px-4 w-1/4 text-indigo-400">Weight</th>
-                                        <th className="py-2.5 md:py-3 px-2 md:px-4 w-1/4 text-right pr-4 md:pr-6"></th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      <AnimatePresence>
-                                        {exercisesForThisDay[exerciseName].map(set => (
-                                          <motion.tr 
-                                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}
-                                            key={set.id} 
-                                            className="border-t border-white/5 hover:bg-white/5 transition-colors group"
-                                          >
-                                            <td className="py-3 md:py-4 font-bold text-zinc-300 text-sm md:text-base">{set.setNumber}</td>
-                                            <td className="py-3 md:py-4 font-bold text-zinc-300 text-sm md:text-base">{set.reps}</td>
-                                            <td className="py-3 md:py-4 font-black text-indigo-400 text-sm md:text-base flex items-center justify-center gap-0.5 md:gap-1">
-                                              {set.weight} <span className="text-[8px] md:text-[10px] font-bold text-zinc-600 uppercase">kg</span>
-                                            </td>
-                                            <td className="py-3 md:py-4 text-right pr-4 md:pr-6">
-                                              <button onClick={() => triggerDeleteLog(set.id)} className="text-zinc-600 hover:text-red-500 transition-colors p-2 rounded-lg opacity-100 md:opacity-0 group-hover:opacity-100 active:scale-90">
-                                                <Trash2 className="w-4 h-4 ml-auto" />
-                                              </button>
-                                            </td>
-                                          </motion.tr>
-                                        ))}
-                                      </AnimatePresence>
-                                    </tbody>
-                                  </table>
+                                {/* --- REPLACED HTML TABLE WITH SLEEK MOBILE CARDS --- */}
+                                <div className="space-y-2">
+                                  {exercisesForThisDay[exerciseName].map(set => (
+                                    <div key={set.id} className="flex items-center justify-between bg-black/30 border border-white/5 p-3 md:p-4 rounded-2xl hover:bg-white/5 transition-colors group">
+                                      <div className="flex items-center gap-4 md:gap-6">
+                                        <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] md:text-xs font-black text-zinc-400">
+                                          {set.setNumber}
+                                        </div>
+                                        <div className="text-white font-bold text-sm md:text-base">
+                                          {set.reps} <span className="text-zinc-500 text-[9px] md:text-[10px] uppercase tracking-widest">Reps</span>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-4 md:gap-6">
+                                        <div className="text-indigo-400 font-black text-sm md:text-base flex items-center gap-1.5">
+                                          {set.weight} <span className="text-zinc-500 text-[9px] md:text-[10px] uppercase tracking-widest">kg</span>
+                                          {(set.equipment === "Dumbbells" || set.equipment === "Plates") ? <span className="text-[8px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded ml-0.5">x2</span> : null}
+                                        </div>
+                                        <button onClick={() => triggerDeleteLog(set.id)} className="p-2 -mr-2 text-zinc-600 hover:text-red-500 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all active:scale-90">
+                                          <Trash2 className="w-4 h-4" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
                             );
