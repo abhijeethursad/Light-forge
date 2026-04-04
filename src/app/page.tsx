@@ -572,7 +572,7 @@ export default function TitanForgeElite() {
                                           </label>
                                           <div className="flex items-center justify-center w-full relative">
                                             <input type="number" step="0.5" value={weight} onChange={e => setWeight(Number(e.target.value))} className="w-28 bg-transparent text-center text-4xl font-black text-indigo-400 outline-none" required />
-                                            {(activeExercise.equipment === "Dumbbells" || activeExercise.equipment === "Single Dumbbell" || activeExercise.equipment === "Single Plate") && (
+                                            {(activeExercise.equipment === "Dumbbells" || activeExercise.equipment === "Plates") && (
                                               <span className="absolute right-0 top-1/2 -translate-y-1/2 bg-zinc-800 text-zinc-400 text-[10px] font-black px-1.5 py-0.5 rounded-md pointer-events-none hidden md:block">x2</span>
                                             )}
                                           </div>
@@ -601,7 +601,7 @@ export default function TitanForgeElite() {
                                                 <span className="text-indigo-400 font-black text-lg md:text-xl flex items-center gap-1.5">
                                                   {set.weight} 
                                                   <span className="text-[10px] uppercase font-bold text-zinc-500">kg</span>
-                                                  {(set.equipment === "Dumbbells" || set.equipment === "Single Dumbbell" || set.equipment === "Single Plate") ? <span className="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded ml-1">x2</span> : null}
+                                                  {(set.equipment === "Dumbbells" || set.equipment === "Plates") ? <span className="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded ml-1">x2</span> : null}
                                                 </span>
                                                 <button onClick={() => triggerDeleteLog(set.id)} className="text-zinc-500 hover:text-red-500 transition-colors opacity-100 lg:opacity-0 group-hover:opacity-100 p-2 active:scale-90"><XCircle className="w-5 h-5 md:w-6 h-6" /></button>
                                               </div>
@@ -622,7 +622,7 @@ export default function TitanForgeElite() {
               </div>
             )}
 
-            {/* ================= FORGE (ADD) MODE ================= */}
+{/* ================= FORGE (ADD) MODE ================= */}
             {appMode === "add" && (
               <div className="max-w-6xl mx-auto px-1 md:px-2 mt-2 md:mt-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
@@ -636,8 +636,9 @@ export default function TitanForgeElite() {
                     </div>
                     
                     <form onSubmit={handleAddNewExercise} className="space-y-4 md:space-y-5 bg-zinc-900/20 backdrop-blur-md border border-white/5 p-5 md:p-8 rounded-[2rem] shadow-2xl">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-                        
+                      
+                      {/* --- FIX: ADDED relative z-30 TO FORCE THIS ROW ABOVE THE NEXT --- */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 relative z-30">
                         <div className="space-y-1.5 relative">
                           <label className="block text-[10px] text-zinc-500 uppercase tracking-widest font-bold ml-1">Designation</label>
                           <div className="relative group">
@@ -649,7 +650,8 @@ export default function TitanForgeElite() {
                         <PremiumSelect label="Target Sector" value={newExMuscle} onChange={setNewExMuscle} options={allMuscleGroups} icon={Activity} placeholder="Select Muscle" />
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                      {/* --- FIX: ADDED relative z-20 SO IT SITS BELOW ROW 1 --- */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 relative z-20">
                         <div className="space-y-1.5 relative">
                           <label className="block text-[10px] text-zinc-500 uppercase tracking-widest font-bold ml-1">Machine Class</label>
                           <div className="relative group">
@@ -670,32 +672,34 @@ export default function TitanForgeElite() {
                           </div>
                         </div>
 
-                        {videoMode === 'url' ? (
-                          <div className="relative group animate-in fade-in zoom-in duration-200">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Link2 className="w-4 h-4 text-zinc-500 group-focus-within:text-emerald-400 transition-colors" /></div>
-                            <input type="text" value={newExVideo} onChange={e => setNewExVideo(e.target.value)} placeholder="https://..." className="w-full bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-xl md:rounded-2xl py-3.5 md:py-4 pl-12 pr-4 text-sm md:text-base text-white placeholder-zinc-700 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 outline-none transition-all shadow-inner" />
-                          </div>
-                        ) : (
-                          <div className="relative group animate-in fade-in zoom-in duration-200">
-                            <div className="relative flex items-center justify-center w-full bg-zinc-900/50 backdrop-blur-md border border-dashed border-white/20 rounded-xl md:rounded-2xl py-6 hover:border-emerald-500/50 transition-all overflow-hidden">
-                              <input type="file" accept="video/*" onChange={handleVideoUpload} disabled={isUploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10" />
-                              <div className="flex flex-col items-center pointer-events-none">
-                                {isUploading ? (
-                                  <>
-                                    <Activity className="w-6 h-6 text-emerald-400 mb-2 animate-spin" />
-                                    <span className="text-xs text-emerald-400 font-bold">{uploadProgress}% Uploading...</span>
-                                    <div className="w-32 h-1 bg-zinc-800 rounded-full mt-3 overflow-hidden"><div className="h-full bg-emerald-400 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div></div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <UploadCloud className="w-6 h-6 text-zinc-500 mb-2 group-hover:text-emerald-400 transition-colors" />
-                                    <span className="text-xs text-zinc-400 font-medium">Tap to select .mp4 file</span>
-                                  </>
-                                )}
+                        <AnimatePresence mode="wait">
+                          {videoMode === 'url' ? (
+                            <motion.div key="url" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="relative group">
+                              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><Link2 className="w-4 h-4 text-zinc-500 group-focus-within:text-emerald-400 transition-colors" /></div>
+                              <input type="text" value={newExVideo} onChange={e => setNewExVideo(e.target.value)} placeholder="https://..." className="w-full bg-zinc-900/50 backdrop-blur-md border border-white/5 rounded-xl md:rounded-2xl py-3.5 md:py-4 pl-12 pr-4 text-sm md:text-base text-white placeholder-zinc-700 focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 outline-none transition-all shadow-inner" />
+                            </motion.div>
+                          ) : (
+                            <motion.div key="upload" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.2 }} className="relative group">
+                              <div className="relative flex items-center justify-center w-full bg-zinc-900/50 backdrop-blur-md border border-dashed border-white/20 rounded-xl md:rounded-2xl py-6 hover:border-emerald-500/50 transition-all overflow-hidden">
+                                <input type="file" accept="video/*" onChange={handleVideoUpload} disabled={isUploading} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10" />
+                                <div className="flex flex-col items-center pointer-events-none">
+                                  {isUploading ? (
+                                    <>
+                                      <Activity className="w-6 h-6 text-emerald-400 mb-2 animate-spin" />
+                                      <span className="text-xs text-emerald-400 font-bold">{uploadProgress}% Uploading...</span>
+                                      <div className="w-32 h-1 bg-zinc-800 rounded-full mt-3 overflow-hidden"><div className="h-full bg-emerald-400 transition-all duration-300" style={{ width: `${uploadProgress}%` }}></div></div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UploadCloud className="w-6 h-6 text-zinc-500 mb-2 group-hover:text-emerald-400 transition-colors" />
+                                      <span className="text-xs text-zinc-400 font-medium">Tap to select .mp4 file</span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        )}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
 
                       <div className="space-y-1.5 relative">
@@ -805,7 +809,7 @@ export default function TitanForgeElite() {
                                       <div className="flex items-center gap-4 md:gap-6">
                                         <div className="text-indigo-400 font-black text-sm md:text-base flex items-center gap-1.5">
                                           {set.weight} <span className="text-zinc-500 text-[9px] md:text-[10px] uppercase tracking-widest">kg</span>
-                                          {(set.equipment === "Dumbbells" || set.equipment === "Single Dumbbell" || set.equipment === "Single Plate") ? <span className="text-[8px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded ml-0.5">x2</span> : null}
+                                          {(set.equipment === "Dumbbells" || set.equipment === "Plates") ? <span className="text-[8px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded ml-0.5">x2</span> : null}
                                         </div>
                                         <button onClick={() => triggerDeleteLog(set.id)} className="p-2 -mr-2 text-zinc-600 hover:text-red-500 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all active:scale-90">
                                           <Trash2 className="w-4 h-4" />
