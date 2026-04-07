@@ -149,11 +149,22 @@ export default function TitanForgeElite() {
     return sum + (set.weight * set.reps * multiplier);
   }, 0);
 
-  useEffect(() => {
+useEffect(() => {
     if (!activeExercise) return;
+
+    // --- 1. BODYWEIGHT PROTOCOL ---
     if (activeExercise.equipment === "Bodyweight") {
       setWeight(0);
-      setCurrentGoal({ weight: 0, reps: 15, achieved: activeExerciseLogsToday.some(l => l.reps >= 15) });
+      const bwHistory = logs.filter(log => log.exerciseName === activeExercise.name);
+      
+      const bestReps = bwHistory.length > 0 ? Math.max(...bwHistory.map(l => l.reps)) : 9;
+      const targetR = bestReps + 1;
+      
+      setCurrentGoal({ weight: 0, reps: targetR, achieved: activeExerciseLogsToday.some(l => l.reps >= targetR) });
+      if (activeExerciseLogsToday.length === 0) {
+        setWeight(0);
+        setReps(targetR);
+      }
       return;
     }
 
@@ -165,21 +176,45 @@ export default function TitanForgeElite() {
       return;
     }
 
-    const personalBest = exerciseHistory.reduce((best, current) => {
+    // --- 2. RECENT TOP-SET ISOLATION ---
+    const sortedHistory = [...exerciseHistory].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const mostRecentDate = sortedHistory[0].date;
+    const recentSessionSets = sortedHistory.filter(log => log.date === mostRecentDate);
+
+    const recentTopSet = recentSessionSets.reduce((best, current) => {
       if (current.weight > best.weight) return current;
       if (current.weight === best.weight && current.reps > best.reps) return current;
       return best;
-    }, exerciseHistory[0]);
+    }, recentSessionSets[0]);
 
-    let targetW = personalBest.weight;
-    let targetR = personalBest.reps;
+    let targetW = recentTopSet.weight;
+    let targetR = recentTopSet.reps;
 
-    if (targetR >= 12) { targetW += 2.5; targetR = 8; } 
-    else { targetR += 1; }
+    // --- 3. HARDWARE-AWARE INCREMENTS ---
+    // The AI adjusts the math based on the specific machine you are using
+    let weightIncrement = 2.5; // Standard Barbell micro-load
+    if (activeExercise.equipment === "Dumbbells") weightIncrement = 4; // Min 2kg per hand
+    if (activeExercise.equipment === "Machine" || activeExercise.equipment === "Cable") weightIncrement = 5; // Standard pin jumps
+
+    // --- 4. THE ELITE COACHING MATRIX ---
+    if (targetR >= 12) {
+      // ZONE CLEARED: You mastered this weight. Force progressive overload.
+      targetW += weightIncrement;
+      targetR = 8; // Reset to the bottom of the hypertrophy window
+    } else if (targetR < 6 && targetW > 0) {
+      // EGO LIFT DETECTED: Weight was too heavy for optimal muscle tear.
+      // The AI forces a deload to fix your form.
+      targetW = Math.max(0, targetW - weightIncrement);
+      targetR = 8;
+    } else {
+      // IN THE TRENCHES: Perfect weight zone. The AI demands 1 more rep of suffering.
+      targetR += 1;
+    }
 
     const hitToday = activeExerciseLogsToday.some(log => log.weight >= targetW && log.reps >= targetR);
     setCurrentGoal({ weight: targetW, reps: targetR, achieved: hitToday });
 
+    // Auto-load the exact target for the operative's first set
     if (activeExerciseLogsToday.length === 0) {
       setWeight(targetW);
       setReps(targetR);
