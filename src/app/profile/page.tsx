@@ -36,7 +36,7 @@ export default function ProfilePage() {
   // --- STATS CALCULATION ---
   const totalSets = logs.length;
   const totalVolume = logs.reduce((sum, set) => {
-    const multiplier = (set.equipment?.includes("Dumbbell") || set.equipment === "Plates" || set.equipment === "Single Plate") ? 2 : 1;
+    const multiplier = (set.equipment?.includes("Dumbbells") || set.equipment === "Plates") ? 2 : 1;
     return sum + (set.weight * set.reps * multiplier);
   }, 0);
 

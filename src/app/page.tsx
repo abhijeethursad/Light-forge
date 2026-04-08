@@ -79,7 +79,7 @@ export default function WorkoutPage() {
   const availableExercises = library.filter(ex => targetMuscles.includes(ex.muscleGroup));
   const todayString = new Date().toLocaleDateString('en-CA');
   const activeExerciseLogsToday = logs.filter(log => log.date === todayString && log.exerciseName === activeExercise?.name);
-  const todayVolume = activeExerciseLogsToday.reduce((sum, set) => sum + (set.weight * set.reps * ((set.equipment.includes("Dumbbell") || set.equipment === "Plates") ? 2 : 1)), 0);
+  const todayVolume = activeExerciseLogsToday.reduce((sum, set) => sum + (set.weight * set.reps * ((set.equipment.includes("Dumbbells") || set.equipment === "Plates") ? 2 : 1)), 0);
 
   // --- THE ELITE AI TRAINER PROTOCOL ---
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function WorkoutPage() {
 
     // 3. Hardware-Aware Increments
     let weightIncrement = 2.5; 
-    if (activeExercise.equipment.includes("Dumbbell")) weightIncrement = 4; 
+    if (activeExercise.equipment.includes("Dumbbells")) weightIncrement = 4; 
     if (activeExercise.equipment === "Machine" || activeExercise.equipment === "Cable") weightIncrement = 5; 
 
     // 4. Elite Coaching Matrix
@@ -303,10 +303,10 @@ export default function WorkoutPage() {
                                 <div className={`flex-1 flex items-center justify-between bg-black/40 p-2 md:p-3 rounded-2xl border border-white/5 focus-within:border-indigo-500 transition-all touch-manipulation shadow-inner min-w-0 ${activeExercise.equipment === 'Bodyweight' ? 'opacity-50 pointer-events-none' : ''}`}>
                                   <button type="button" onClick={() => setWeight(Math.max(0, weight - 2.5))} className="w-12 h-12 flex items-center justify-center bg-zinc-900/80 rounded-[14px] hover:bg-zinc-800 text-zinc-400 hover:text-indigo-400 transition-colors active:scale-90 flex-shrink-0"><Minus className="w-5 h-5"/></button>
                                   <div className="flex flex-col items-center justify-center flex-1 min-w-0 px-2">
-                                    <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1 font-bold truncate w-full text-center">{(activeExercise.equipment.includes("Dumbbell") || activeExercise.equipment === "Plates") ? "Load (Arm)" : "Load (Total)"}</label>
+                                    <label className="block text-[10px] text-zinc-500 uppercase tracking-widest mb-1 font-bold truncate w-full text-center">{(activeExercise.equipment.includes("Dumbbells") || activeExercise.equipment === "Plates") ? "Load (Arm)" : "Load (Total)"}</label>
                                     <div className="flex items-center justify-center w-full relative">
                                       <input type="number" step="0.5" value={weight} onChange={e => setWeight(Number(e.target.value))} className="w-28 bg-transparent text-center text-4xl font-black text-indigo-400 outline-none" required />
-                                      {(activeExercise.equipment.includes("Dumbbell") || activeExercise.equipment === "Plates") && (
+                                      {(activeExercise.equipment.includes("Dumbbells") || activeExercise.equipment === "Plates") && (
                                         <span className="absolute right-0 top-1/2 -translate-y-1/2 bg-zinc-800 text-zinc-400 text-[10px] font-black px-1.5 py-0.5 rounded-md pointer-events-none hidden md:block">x2</span>
                                       )}
                                     </div>
@@ -331,7 +331,7 @@ export default function WorkoutPage() {
                                         <div className="flex items-center gap-4 md:gap-6">
                                           <span className="text-indigo-400 font-black text-lg md:text-xl flex items-center gap-1.5">
                                             {set.weight} <span className="text-[10px] uppercase font-bold text-zinc-500">kg</span>
-                                            {(set.equipment.includes("Dumbbell") || set.equipment === "Plates") ? <span className="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded ml-1">x2</span> : null}
+                                            {(set.equipment.includes("Dumbbells") || set.equipment === "Plates") ? <span className="text-[9px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded ml-1">x2</span> : null}
                                           </span>
                                           <button onClick={() => triggerDeleteLog(set.id)} className="text-zinc-500 hover:text-red-500 transition-colors opacity-100 lg:opacity-0 group-hover:opacity-100 p-2 active:scale-90"><XCircle className="w-5 h-5 md:w-6 h-6" /></button>
                                         </div>

@@ -214,7 +214,7 @@ export default function ExerciseHistoryModal({ isOpen, onClose, exercise, logs }
                                     <Weight className="w-3 h-3 text-indigo-400" />
                                     <span className="text-sm font-bold text-white flex items-center">
                                       {set.weight}<span className="text-[10px] text-zinc-500 ml-0.5 mr-1">kg</span>
-                                      {(set.equipment?.includes("Dumbbell") || set.equipment === "Single Plate" || set.equipment === "Plates") && (
+                                      {(set.equipment?.includes("Dumbbells") || set.equipment === "Plates") && (
                                         <span className="text-[8px] bg-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded">x2</span>
                                       )}
                                     </span>
