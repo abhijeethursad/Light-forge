@@ -42,7 +42,7 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", bounce: 0, duration: 0.7 }}
         onSubmit={handleLogin} 
-        className="w-full max-w-[380px] bg-zinc-950/60 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] p-8 shadow-[0_40px_80px_rgba(0,0,0,0.5)] relative z-10 overflow-hidden"
+        className="w-full max-w-95 bg-zinc-950/60 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] p-8 shadow-[0_40px_80px_rgba(0,0,0,0.5)] relative z-10 overflow-hidden"
       >
         {/* Subtle top edge highlight for 3D glass effect */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -72,7 +72,7 @@ export default function LoginPage() {
               placeholder="Username" 
               required 
               disabled={isLoading}
-              className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-emerald-500/50 focus:bg-emerald-500/5 transition-all duration-300 disabled:opacity-50" 
+              className="w-full bg-white/3 hover:bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-emerald-500/50 focus:bg-emerald-500/5 transition-all duration-300 disabled:opacity-50" 
             />
           </div>
 
@@ -87,7 +87,7 @@ export default function LoginPage() {
               placeholder="Password" 
               required 
               disabled={isLoading}
-              className="w-full bg-white/[0.03] hover:bg-white/[0.05] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-emerald-500/50 focus:bg-emerald-500/5 transition-all duration-300 disabled:opacity-50" 
+              className="w-full bg-white/3 hover:bg-white/5 border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-white outline-none focus:border-emerald-500/50 focus:bg-emerald-500/5 transition-all duration-300 disabled:opacity-50" 
             />
           </div>
         </div>
